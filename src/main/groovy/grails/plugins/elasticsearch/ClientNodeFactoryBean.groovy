@@ -16,6 +16,7 @@
 
 package grails.plugins.elasticsearch
 
+import org.apache.http.Header
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
@@ -23,6 +24,7 @@ import org.apache.http.client.CredentialsProvider
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
+import org.apache.http.message.BasicHeader
 import org.elasticsearch.client.Client
 import org.elasticsearch.client.RestClient
 import org.elasticsearch.client.RestClientBuilder
@@ -52,7 +54,9 @@ class ClientNodeFactoryBean implements FactoryBean {
             List<HttpHost> httpHostList = []
             elasticSearchContextHolder.config.client.hosts.each {
                 int port = it.port
-                httpHostList << new HttpHost("${it.host}", port)
+                String scheme = it.scheme ?: 'http'
+                httpHostList << new HttpHost("${it.host}", port, scheme)
+                LOG.info "Elasticsearch host:${it.host}, port:${port}, scheme:'${scheme}'"
             }
             HttpHost[] httpHosts = httpHostList
             builder = RestClient.builder(httpHosts)
@@ -68,6 +72,14 @@ class ClientNodeFactoryBean implements FactoryBean {
                     return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
                 }
             })
+        }
+
+        // Set any additional headers
+        if (elasticSearchContextHolder.config.client.headers) {
+            Header[] defaultHeaders = elasticSearchContextHolder.config.client.headers.collect { name, value ->
+                new BasicHeader(name, value)
+            }
+            builder.setDefaultHeaders(defaultHeaders)
         }
 
         LOG.debug 'Initializing Elasticsearch RestClient'

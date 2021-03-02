@@ -18,7 +18,7 @@ buildscript {
 }
 
 plugins {
-    id "com.jfrog.bintray" version "1.8.4"
+    id "com.jfrog.bintray"
     id 'com.jfrog.artifactory' version '4.9.8'
     id "de.undercouch.download" version "4.0.0"
     id "cgoit.gradle.elasticsearch" version "0.1.0"
