@@ -162,6 +162,17 @@ class ElasticSearchMappingFactory {
                     propOptions.format = 'strict_time'
                 }
             }
+
+            //
+            // If the mapping definition has the 'type' option then ditch the mapping properties and use just the one
+            // provided. This currently only handles the 'type'.
+            // e.g. countryCode type:'keyword'
+            //
+            if (scpm.hasExplicitType()) {
+                propOptions.clear()
+                propOptions.type = scpm.getExplicitType()
+            }
+
             elasticTypeMappingProperties.put(scpm.getPropertyName(), propOptions)
         }
         elasticTypeMappingProperties

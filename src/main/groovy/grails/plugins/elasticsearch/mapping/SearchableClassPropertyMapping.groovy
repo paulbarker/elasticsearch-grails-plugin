@@ -28,7 +28,7 @@ class SearchableClassPropertyMapping {
 
     private static final Set<String> SEARCHABLE_SPECIAL_MAPPING_OPTIONS =
             ['component', 'converter', 'reference', 'excludeFromAll', 'maxDepth', 'multi_field', 'join', 'geoPoint',
-             'alias', 'dynamic', 'attachment'] as Set<String>
+             'alias', 'dynamic', 'attachment', 'type'] as Set<String>
 
     /** Grails attributes of this property */
     private DomainProperty grailsProperty
@@ -225,5 +225,13 @@ class SearchableClassPropertyMapping {
 
     String getAlias() {
         specialMappingAttributes.get('alias')
+    }
+
+    boolean hasExplicitType() {
+        specialMappingAttributes.get('type') != null
+    }
+
+    String getExplicitType() {
+        specialMappingAttributes.get('type')
     }
 }
