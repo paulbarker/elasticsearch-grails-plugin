@@ -205,13 +205,15 @@ class DomainClassUnmarshaller implements DataBinder {
                 // Embedded instance.
                 if (!scpm.isComponent()) {
                     // maybe ignore?
-                    throw new IllegalStateException("Property ${domainClass.type.name}.${propertyName} is not mapped as [component], but broken search hit found.")
+//                    throw new IllegalStateException("Property ${domainClass.type.name}.${propertyName} is not mapped as [component], but broken search hit found.")
+                    LOG.debug "Property ${domainClass.type.name}.${propertyName} is not mapped as [component], but broken search hit found."
                 }
                 DomainEntity nestedDomainClass = elasticSearchContextHolder.getMappingContext((String) data.get('class'))?.domainClass
                 if (domainClass != null) {
                     // Unmarshall 'component' instance.
                     if (!scpm.isComponent()) {
-                        throw new IllegalStateException("Object ${data.get('class')} found in index, but [$propertyName] is not mapped as component.")
+//                        throw new IllegalStateException("Object ${data.get('class')} found in index, but [$propertyName] is not mapped as component.")
+                        LOG.debug "Object ${data.get('class')} found in index, but [$propertyName] is not mapped as component."
                     }
                     parseResult = unmarshallDomain(nestedDomainClass, data.get('id'), data, unmarshallingContext)
                 }
@@ -250,8 +252,15 @@ class DomainClassUnmarshaller implements DataBinder {
 
                 parseResult = null
             } else if (scpm.grailsProperty.type == Date && propertyValue != null) {
-                DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(DateTimeZone.UTC)
-                parseResult = DateTime.parse(propertyValue, dateTimeFormatter)
+                try {
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(DateTimeZone.UTC)
+                    parseResult = DateTime.parse(propertyValue, dateTimeFormatter)
+                }
+                catch (IllegalArgumentException e) {
+                    // Try again  without the milliseconds in the format. I think ES changed its response format...
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(DateTimeZone.UTC)
+                    parseResult = DateTime.parse(propertyValue, dateTimeFormatter)
+                }
             } else if (Temporal.isAssignableFrom(scpm.grailsProperty.type) && propertyValue != null) {
                 switch (scpm.grailsProperty.type) {
                     case LocalDate:
